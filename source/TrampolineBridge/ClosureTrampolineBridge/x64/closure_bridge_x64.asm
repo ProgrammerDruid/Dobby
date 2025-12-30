@@ -1,15 +1,8 @@
-#if defined(__x86_64__)
-#if defined(__WIN32__) || defined(__APPLE__)
-#define cdecl(s) _##s
-#else
-#define cdecl(s) s
-#endif
-
 .intel_syntax noprefix
 .align 4
 
-.globl cdecl(closure_bridge_asm)
-cdecl(closure_bridge_asm):
+.globl closure_bridge_asm
+closure_bridge_asm:
   // flags register
   pushfq
   // used for alignment
@@ -34,14 +27,17 @@ cdecl(closure_bridge_asm):
   mov [rsp+8*14], r14
   mov [rsp+8*15], r15
 
-#define rsp_offset (8*5)
-#define orig_rsp_offset (16*8+2*8+8)
+// These were previously defined as preprocessor constants; keep them as GAS symbols
+// so the file assembles without a C preprocessor.
+.set rsp_offset, (8*5)
+.set orig_rsp_offset, (16*8+2*8+8)
   mov rax, rsp
   add rax, orig_rsp_offset // include `closure_tramp_entry_addr` stack var
   mov [rsp+rsp_offset], rax
 
   // call convention: rdi = register context, rsi = interceptor entry
-#define closure_tramp_entry_offset (16*8+2*8)
+// Offset to ClosureTrampoline entry pointer on stack
+.set closure_tramp_entry_offset, (16*8+2*8)
   mov rdi, rsp
   mov rsi, [rsp+closure_tramp_entry_offset]
 
@@ -49,12 +45,12 @@ cdecl(closure_bridge_asm):
   and rax, 0xf
   jz .Lstack_aligned_call_start
   push rax
-  call cdecl(common_closure_bridge_handler)
+  call common_closure_bridge_handler
   pop rax
   jmp .Lcall_end
 
   .Lstack_aligned_call_start:
-  call cdecl(common_closure_bridge_handler)
+  call common_closure_bridge_handler
   .Lcall_end:
 
   // general register
@@ -83,11 +79,10 @@ cdecl(closure_bridge_asm):
   // trick: use `closure_tramp_entry_addr` stack_addr to store the return address
   ret
 
-.globl cdecl(closure_bridge_asm_end)
-cdecl(closure_bridge_asm_end):
+.globl closure_bridge_asm_end
+closure_bridge_asm_end:
 
 .data
 .align 8
 common_closure_bridge_handler_addr:
-.quad cdecl(common_closure_bridge_handler)
-#endif
+.quad common_closure_bridge_handler

@@ -9,6 +9,7 @@
 
 #if defined(__linux__) || defined(__APPLE__)
 #include <unistd.h>
+#include <sys/time.h> // gettimeofday
 #include <syslog.h>
 #include <errno.h>
 #include <fcntl.h>
